@@ -59,6 +59,7 @@ int main() {
 
             file.write((char*)&employeeRecordLength, sizeof(employeeRecordLength));
 
+
 //            file.write((char*)&idlength, sizeof(idlength));
 //            file.write(e.Employee_ID, idlength);
 //

@@ -1,70 +1,30 @@
 #include <iostream>
-#include <algorithm>
 #include <bits/stdc++.h>
-#include <vector>
-#include <fstream>
-
 using namespace std;
+const string emp= "Employee.txt", dep = "Department.txt";
+class Entity{
+public:
+    const static int maxRecordSize = 1000;
+    static string toChar(short s){
+        string tmp = "";
+        while(true){
+            tmp += s%10 + '0';
+            s/=10;
+            if(s == 0)break;
+        }
+        reverse(tmp.begin(),tmp.end());
+        return tmp;
+    }
 
-struct Department
-{
-    char Dept_ID[30];
-    char Dept_Name[30];
-    char Dept_manager[30];
 };
 
-struct Employee
-{
+class Employee: public Entity{
+public:
     char Employee_ID[13];
     char Employee_Name[50];
     char Employee_Position[50];
     char Dept_ID[30];
-
-};
-
-string toChar(short s){
-    string tmp = "";
-    while(true){
-        tmp += s%10 + '0';
-        s/=10;
-        if(s == 0)break;
-    }
-    reverse(tmp.begin(),tmp.end());
-    return tmp;
-}
-
-int main() {
-
-    fstream file("assign.txt", ios::out );
-    //    while(true)
-//    {
-    int choice;
-    cout << "1-) " << " Add New Employee "<<endl;
-    cout << "2-) " << " Add New Department "<<endl;
-    cout << "3-) " << " Delete Employee by ID "<<endl;
-    cout << "4-) " << " Delete Department by ID"<<endl;
-    cout << "5-) " << " print Employee by ID"<<endl;
-    cout << "6-) " << " print Employee by Department ID"<<endl;
-    cout << "7-) " << " print Department by ID"<<endl;
-    cout << "8-) " << " print Department by name"<<endl;
-    cout << "9-) " << " Write a query "<<endl;
-    cout << "10-)" <<" Exit "<<endl;
-    cin >> choice;
-    if(choice==1)
-    {
-        Employee e;
-        cin>>e.Employee_ID;
-
-        cin>>e.Employee_Name;
-
-
-        cin>>e.Employee_Position;
-
-
-        cin>>e.Dept_ID;
-
-
-
+    void writeRecord(fstream & file,Employee &e){
         short employeeRecordLength, employeeIDLength, employeeNameLength ,employeePositionLength,deptidLength;
         employeeIDLength=strlen(e.Employee_ID);
         employeeNameLength=strlen(e.Employee_Name);
@@ -73,7 +33,7 @@ int main() {
 
         employeeRecordLength=employeeIDLength+employeeNameLength+employeePositionLength+deptidLength+4;
 
-        string lol = toChar(employeeRecordLength);
+        string lol = e.toChar(employeeRecordLength);
         int n = lol.length();
 
         // declaring character array
@@ -98,26 +58,51 @@ int main() {
 
         file.write(e.Dept_ID, deptidLength);
         file.write("|", 1);
-
-
     }
-    else if(choice == 2)
-    {
-        Department d;
-        cin>>d.Dept_ID;
-        cin>>d.Dept_Name;
-        cin>>d.Dept_manager;
 
+    friend istream & operator >> (istream &in,  Employee &e);
 
-        int deptRecordLength, deptIDLength, deptNameLength ,deptManagerLength;
+};
+istream & operator >> (istream &in,  Employee &e){
+    cout <<"Employee ID: ";
+    cin>>e.Employee_ID;
+    cout << endl;
+    if(strlen(e.Employee_ID) == 0) return in;
+    cout <<"Employee Name: ";
+    cin>>e.Employee_Name;
+    cout << endl;
+    cout <<"Employee Position: ";
+    cin>>e.Employee_Position;
+    cout <<endl;
+    cout <<"Department ID: ";
+    cin>>e.Dept_ID;
+    return in;
+}
+class Department :public Entity{
+public:
+    char Dept_ID[30];
+    char Dept_Name[30];
+    char Dept_manager[30];
+
+    void writeRecord(fstream & file,Department &d){
+        short deptRecordLength, deptIDLength, deptNameLength ,deptManagerLength;
         deptIDLength=strlen(d.Dept_ID);
         deptNameLength=strlen(d.Dept_Name);
         deptManagerLength=strlen(d.Dept_manager);
 
 
-        deptRecordLength=deptIDLength+deptNameLength+deptManagerLength;
+        deptRecordLength=deptIDLength+deptNameLength+deptManagerLength+3;
+        string lol = toChar(deptRecordLength);
+        int n = lol.length();
 
-        file.write((char*)&deptRecordLength, sizeof(deptRecordLength));
+        // declaring character array
+        char char_array[n + 1];
+
+        // copying the contents of the
+        // string to char array
+        strcpy(char_array, lol.c_str());
+
+        file.write(char_array, sizeof(deptRecordLength));
 
 
         file.write(d.Dept_ID, deptIDLength);
@@ -128,21 +113,55 @@ int main() {
 
         file.write(d.Dept_manager, deptManagerLength);
         file.write("|", 1);
+    }
 
+    friend istream & operator >> (istream &in,  Department &dep);
+};
+istream & operator >> (istream &in,  Department &d){
+    cout <<"Department ID: ";
+    cin>>d.Dept_ID;
+    cout << endl;
+    if(strlen(d.Dept_ID) == 0) return in;
+    cout <<"Department Name: ";
+    cin>>d.Dept_Name;
+    cout << endl;
+    cout <<"Department Manger: ";
+    cin>>d.Dept_manager;
+    return in;
+}
+int main() {
+    int choice;
+    fstream empl(emp,ios::out);
+    fstream depa(dep,ios::out);
+    cout << "1-) " << " Add New Employee "<<endl;
+    cout << "2-) " << " Add New Department "<<endl;
+    cout << "3-) " << " Delete Employee by ID "<<endl;
+    cout << "4-) " << " Delete Department by ID"<<endl;
+    cout << "5-) " << " print Employee by ID"<<endl;
+    cout << "6-) " << " print Employee by Department ID"<<endl;
+    cout << "7-) " << " print Department by ID"<<endl;
+    cout << "8-) " << " print Department by name"<<endl;
+    cout << "9-) " << " Write a query "<<endl;
+    cout << "10-)" <<" Exit "<<endl;
+    cin >> choice;
+    if(choice==1)
+    {
 
+        Employee e;
+        cin >> e;
+        cout <<e.Employee_Name <<endl;
+        e.writeRecord(empl,e);
+    }
+    else if(choice == 2)
+    {
+        Department d;
+        cin >> d;
+        cout <<d.Dept_Name <<endl;
+        d.writeRecord(depa,d);
     }
 
     else if(choice==10)
     {
-        file.close();
         return 0;
     }
-
-
-
-//    //}
-
-
-
-    return 0;
 }

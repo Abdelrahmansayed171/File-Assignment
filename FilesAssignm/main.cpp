@@ -19,13 +19,24 @@ struct Employee
     char Employee_Name[50];
     char Employee_Position[50];
     char Dept_ID[30];
+
 };
 
-
+string toChar(short s){
+    string tmp = "";
+    while(true){
+        tmp += s%10 + '0';
+        s/=10;
+        if(s == 0)break;
+    }
+    reverse(tmp.begin(),tmp.end());
+    return tmp;
+}
 
 int main() {
+
     fstream file("assign.txt", ios::out );
-//    while(true)
+    //    while(true)
 //    {
     int choice;
     cout << "1-) " << " Add New Employee "<<endl;
@@ -43,23 +54,36 @@ int main() {
     {
         Employee e;
         cin>>e.Employee_ID;
+
         cin>>e.Employee_Name;
+
+
         cin>>e.Employee_Position;
+
+
         cin>>e.Dept_ID;
 
 
 
-        int employeeRecordLength, employeeIDLength, employeeNameLength ,employeePositionLength,deptidLength;
+        short employeeRecordLength, employeeIDLength, employeeNameLength ,employeePositionLength,deptidLength;
         employeeIDLength=strlen(e.Employee_ID);
         employeeNameLength=strlen(e.Employee_Name);
         employeePositionLength=strlen(e.Employee_Position);
         deptidLength=strlen(e.Dept_ID);
 
-        employeeRecordLength=employeeIDLength+employeeNameLength+employeePositionLength+deptidLength;
+        employeeRecordLength=employeeIDLength+employeeNameLength+employeePositionLength+deptidLength+4;
 
-        //cout << employeeRecordLength;
+        string lol = toChar(employeeRecordLength);
+        int n = lol.length();
 
-        file.write((char*)&employeeRecordLength, sizeof(employeeRecordLength));
+        // declaring character array
+        char char_array[n + 1];
+
+        // copying the contents of the
+        // string to char array
+        strcpy(char_array, lol.c_str());
+
+        file.write(char_array, sizeof(employeeRecordLength));
 
 
 
@@ -116,7 +140,7 @@ int main() {
 
 
 
-    //}
+//    //}
 
 
 

@@ -5,7 +5,7 @@ const string emp= "Employee.txt", dep = "Department.txt";
 class Entity{
 public:
     const static int maxRecordSize = 1000;
-    static string toChar(short s){
+    static string toChar(int s){
         string tmp = "";
         while(true){
             tmp += s%10 + '0';
@@ -25,14 +25,14 @@ public:
     char Employee_Position[50];
     char Dept_ID[30];
     void writeRecord(fstream & file,Employee &e){
-        short employeeRecordLength, employeeIDLength, employeeNameLength ,employeePositionLength,deptidLength;
+        int employeeRecordLength, employeeIDLength, employeeNameLength ,employeePositionLength,deptidLength;
         employeeIDLength=strlen(e.Employee_ID);
         employeeNameLength=strlen(e.Employee_Name);
         employeePositionLength=strlen(e.Employee_Position);
         deptidLength=strlen(e.Dept_ID);
 
         employeeRecordLength=employeeIDLength+employeeNameLength+employeePositionLength+deptidLength+4;
-
+        cout << employeeRecordLength <<endl;
         string lol = e.toChar(employeeRecordLength);
         int n = lol.length();
 
@@ -43,7 +43,7 @@ public:
         // string to char array
         strcpy(char_array, lol.c_str());
 
-        file.write(char_array, sizeof(employeeRecordLength));
+        file.write(char_array, n);
 
 
 
@@ -59,7 +59,39 @@ public:
         file.write(e.Dept_ID, deptidLength);
         file.write("|", 1);
     }
+    static void deleteRecord(fstream & file,int ID){
+        int byte_offset;
+        int header_list=-1;
+        int li;
+        cin >> byte_offset;
+//
+//        file.seekg(byte_offset, ios::beg);
+//        file.get( (char)&li,sizeof (2));
+//
+//        cout << li<<endl;
 
+
+
+        file.seekp(byte_offset, ios::beg);
+
+
+//        file.put('');
+
+
+        string loly = toChar(header_list);
+        int n = loly.length();
+        char char_array[n + 1];
+        strcpy(char_array, loly.c_str());
+        file.write(char_array, sizeof(header_list));
+
+        file.write("|", 1);
+
+//      file.write((char*)& li, sizeof(li));
+
+//        file.write("|", 1);
+
+        header_list=byte_offset;
+    }
     friend istream & operator >> (istream &in,  Employee &e);
 
 };
@@ -85,7 +117,7 @@ public:
     char Dept_manager[30];
 
     void writeRecord(fstream & file,Department &d){
-        short deptRecordLength, deptIDLength, deptNameLength ,deptManagerLength;
+        int deptRecordLength, deptIDLength, deptNameLength ,deptManagerLength;
         deptIDLength=strlen(d.Dept_ID);
         deptNameLength=strlen(d.Dept_Name);
         deptManagerLength=strlen(d.Dept_manager);
@@ -131,8 +163,8 @@ istream & operator >> (istream &in,  Department &d){
 }
 int main() {
     int choice;
-    fstream empl(emp,ios::out);
-    fstream depa(dep,ios::out);
+    fstream empl(emp,ios::app);
+    fstream depa(dep,ios::app);
     cout << "1-) " << " Add New Employee "<<endl;
     cout << "2-) " << " Add New Department "<<endl;
     cout << "3-) " << " Delete Employee by ID "<<endl;
@@ -159,7 +191,12 @@ int main() {
         cout <<d.Dept_Name <<endl;
         d.writeRecord(depa,d);
     }
-
+    else if(choice ==3)
+    {
+        int empID;
+        cin>>empID;
+        Employee::deleteRecord(empl,empID);
+    }
     else if(choice==10)
     {
         return 0;

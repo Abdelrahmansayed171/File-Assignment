@@ -3,7 +3,7 @@
 #include<strstream>
 using namespace std;
 const string emp= "Employee.txt", dep = "Department.txt", Emp_PIndex = "PIndex_Emp.txt" , Dep_PIndex = "PIndex_Dep.txt";
-int EmpNum = 0,highBOff;
+int EmpNum = 3;
 fstream empl(emp,ios::app|ios::in);
 fstream depa(dep,ios::app|ios::in);
 fstream prim(Emp_PIndex, ios::app|ios::in);
@@ -45,18 +45,15 @@ public:
             s[i] = ' ';
         }
     }
-    static void readStudent(fstream & file)
+    static char* readStudent(fstream & file)
     {
         char indicator[4];
         file.read(indicator,4);
         int length = toInt(indicator,4);
         char record[length];
         file.read(record,length);
-        cout << length <<endl;
-        for(int i = 0;i <length;i++){
-            cout << record[i];
-        }
         istrstream strbuff(record);
+        return record;
     }
 };
 class DepPIndex: public Entity{
@@ -86,25 +83,40 @@ public:
         Entity::Format(char_array,sizeof(byteOff));
         file.write(char_array, sizeof(byteOff));
     }
-//    int searchID(fstream & file,string ID){
-//        int numRec = EmpNum;
-//        int byteOff=-1;
-//        int low = 4, mid, high = highBOff;
-//
-//        while (low <= high)
-//        {
-//            mid = (low + high) / 2;
-//            if (ID < PrmIndxArray[mid].ID)
-//                high = mid - 1;
-//            else if (ID > PrmIndxArray[mid].ID)
-//                low = mid + 1;
-//            else{
-//                byteOff= PrmIndxArray[mid].RRN;
-//                break;
-//            }
-//        }
-//        return byteOff;
-//    }
+    int searchID(fstream & file,string ID){
+        int byteOff=-1;
+        int low = 0, mid, high = EmpNum;
+        while (low <= high)
+        {
+            cout << low << " " << high <<endl;
+            mid = (low + high) / 2;
+            file.seekg(mid*16,ios::beg);
+            cout << file.tellg() <<endl;
+            char Prec[6];
+            file.read(Prec,16);
+            string tmp(Prec);
+            cout << tmp <<endl;
+            if (ID < tmp)
+                high = mid - 1;
+            else if (ID > tmp)
+                low = mid + 1;
+            else{
+                string tmp = "";
+                tmp.push_back(Prec[12]);
+                tmp.push_back(Prec[13]);
+                tmp.push_back(Prec[14]);
+                tmp.push_back(Prec[15]);
+                char arr[4];
+                cout << tmp <<endl;
+                strcpy(arr, tmp.c_str());
+                byteOff = Entity::toInt(arr,4);
+                cout << byteOff <<endl;
+                break;
+            }
+        }
+        cout << byteOff <<endl;
+        return byteOff;
+    }
 };
 
 class Employee: public Entity{
@@ -126,7 +138,6 @@ public:
         cout << employeeRecordLength <<endl;
         empl.seekp(0,ios::end);
         int byteOff = empl.tellp();
-        highBOff = byteOff;
         string lol = e.toChar(employeeRecordLength);
         int n = lol.length();
         char char_array[n + 1];
@@ -240,5 +251,45 @@ istream & operator >> (istream &in,  Department &d){
 }
 
 int main() {
-    Entity::readStudent(empl);
+    int choice;
+    cout << "1-) " << " Add New Employee "<<endl;
+    cout << "2-) " << " Add New Department "<<endl;
+    cout << "3-) " << " Delete Employee by ID "<<endl;
+    cout << "4-) " << " Delete Department by ID"<<endl;
+    cout << "5-) " << " print Employee by ID"<<endl;
+    cout << "6-) " << " print Employee by Department ID"<<endl;
+    cout << "7-) " << " print Department by ID"<<endl;
+    cout << "8-) " << " print Department by name"<<endl;
+    cout << "9-) " << " Write a query "<<endl;
+    cout << "10-)" <<" Exit "<<endl;
+    cin >> choice;
+    if(choice==1)
+    {
+
+        Employee e,s,d;
+        cin >> e>>s>>d;
+        cout <<e.Employee_Name <<endl;
+        e.writeRecord(empl,e);
+        s.writeRecord(empl,s);
+        d.writeRecord(empl,d);
+    }
+    else if(choice == 2)
+    {
+        Department d;
+        cin >> d;
+        cout <<d.Dept_Name <<endl;
+        d.writeRecord(depa,d);
+    }
+    else if(choice ==3)
+    {
+        EmpPIndex embo;
+        cout << "Enter ID: " <<endl;
+        string id;
+        cin >> id;
+        embo.searchID(prim,id);
+    }
+    else if(choice==10)
+    {
+        return 0;
+    }
 }

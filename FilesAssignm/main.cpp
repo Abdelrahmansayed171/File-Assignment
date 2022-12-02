@@ -5,6 +5,7 @@ const string emp= "Employee.txt", dep = "Department.txt", Emp_PIndex = "PIndex_E
 fstream empl(emp,ios::app);
 fstream depa(dep,ios::app);
 fstream prim(Emp_PIndex, ios::app);
+fstream primdep(Dep_PIndex, ios::app);
 class Entity{
 public:
     const static int maxRecordSize = 1000;
@@ -119,6 +120,23 @@ istream & operator >> (istream &in,  Employee &e){
     cin>>e.Dept_ID;
     return in;
 }
+
+
+class DepPIndex: public Entity{
+public:
+    char Dept_ID[30];
+    int byteOff;
+    void writeindex(fstream & file,char* d,int byteOff){
+        file.write(d, 12);
+        string lol = Entity::toChar(byteOff);
+        int n = lol.length();
+        char char_array[n + 1];
+        strcpy(char_array, lol.c_str());
+        Entity::Format(char_array,sizeof(byteOff));
+        file.write(char_array, sizeof(byteOff));
+    }
+};
+
 class Department :public Entity{
 public:
     char Dept_ID[30];
@@ -126,34 +144,31 @@ public:
     char Dept_manager[30];
 
     void writeRecord(fstream & file,Department &d){
-        short deptRecordLength, deptIDLength, deptNameLength ,deptManagerLength;
-        deptIDLength=strlen(d.Dept_ID);
-        deptNameLength=strlen(d.Dept_Name);
-        deptManagerLength=strlen(d.Dept_manager);
-
-
-        deptRecordLength=deptIDLength+deptNameLength+deptManagerLength+3;
-        string lol = toChar(deptRecordLength);
-        short n = lol.length();
-
-        // declaring character array
+        int DepartmentRecordLength, DepartmentIDLength, DepartmentNameLength ,DepartmentManegerLength;
+        DepartmentIDLength=strlen(d.Dept_ID);
+        DepartmentNameLength=strlen(d.Dept_Name);
+        DepartmentManegerLength=strlen(d.Dept_manager);
+        DepartmentRecordLength=DepartmentIDLength+DepartmentNameLength+DepartmentManegerLength+4;
+        cout << DepartmentRecordLength <<endl;
+        depa.seekp(0,ios::end);
+        int byteOff = depa.tellp();
+        string lol = d.toChar(DepartmentRecordLength);
+        int n = lol.length();
         char char_array[n + 1];
-
-        // copying the contents of the
-        // string to char array
         strcpy(char_array, lol.c_str());
-
+        Entity::Format(char_array,sizeof(byteOff));
         file.write(char_array, sizeof(n));
 
-
-        file.write(d.Dept_ID, deptIDLength);
+        file.write(d.Dept_ID, DepartmentIDLength);
+        file.write("|", 1);
+        file.write(d.Dept_Name, DepartmentNameLength);
+        file.write("|", 1);
+        file.write(d.Dept_manager, DepartmentManegerLength);
         file.write("|", 1);
 
-        file.write(d.Dept_Name, deptNameLength);
-        file.write("|", 1);
-
-        file.write(d.Dept_manager, deptManagerLength);
-        file.write("|", 1);
+        Entity::Format(d.Dept_ID,30);
+        DepPIndex primwriter;
+        primwriter.writeindex(primdep,d.Dept_ID,byteOff);
     }
 
     friend istream & operator >> (istream &in,  Department &dep);

@@ -1,7 +1,10 @@
 #include <iostream>
 #include <bits/stdc++.h>
 using namespace std;
-const string emp= "Employee.txt", dep = "Department.txt";
+const string emp= "Employee.txt", dep = "Department.txt", Emp_PIndex = "PIndex_Emp.txt" , Dep_PIndex = "PIndex_Dep.txt";
+fstream empl(emp,ios::app);
+fstream depa(dep,ios::app);
+fstream prim(Emp_PIndex, ios::app);
 class Entity{
 public:
     const static int maxRecordSize = 1000;
@@ -15,9 +18,28 @@ public:
         reverse(tmp.begin(),tmp.end());
         return tmp;
     }
+    static void Format(char s[],int len){
+        int written = strlen(s);
+        for(int i =written;i < len;i++){
+            s[i] = ' ';
+        }
+    }
 
 };
-
+class EmpPIndex: public Entity{
+public:
+    char Employee_ID[13];
+    int byteOff;
+    void writeindex(fstream & file,char* e,int byteOff){
+        file.write(e, 12);
+        string lol = Entity::toChar(byteOff);
+        int n = lol.length();
+        char char_array[n + 1];
+        strcpy(char_array, lol.c_str());
+        Entity::Format(char_array,sizeof(byteOff));
+        file.write(char_array, sizeof(byteOff));
+    }
+};
 class Employee: public Entity{
 public:
     char Employee_ID[13];
@@ -30,34 +52,28 @@ public:
         employeeNameLength=strlen(e.Employee_Name);
         employeePositionLength=strlen(e.Employee_Position);
         deptidLength=strlen(e.Dept_ID);
-
         employeeRecordLength=employeeIDLength+employeeNameLength+employeePositionLength+deptidLength+4;
         cout << employeeRecordLength <<endl;
+        empl.seekp(0,ios::end);
+        int byteOff = empl.tellp();
         string lol = e.toChar(employeeRecordLength);
         int n = lol.length();
-
-        // declaring character array
         char char_array[n + 1];
-
-        // copying the contents of the
-        // string to char array
         strcpy(char_array, lol.c_str());
-
+        Entity::Format(char_array,sizeof(byteOff));
         file.write(char_array, sizeof(n));
-
-
 
         file.write(e.Employee_ID, employeeIDLength);
         file.write("|", 1);
-
         file.write(e.Employee_Name, employeeNameLength);
         file.write("|", 1);
-
         file.write(e.Employee_Position, employeePositionLength);
         file.write("|", 1);
-
         file.write(e.Dept_ID, deptidLength);
         file.write("|", 1);
+        Entity::Format(e.Employee_ID,13);
+        EmpPIndex primwriter;
+        primwriter.writeindex(prim,e.Employee_ID,byteOff);
     }
     static void deleteRecord(fstream & file,int ID){
         int byte_offset;
@@ -154,10 +170,9 @@ istream & operator >> (istream &in,  Department &d){
     cin>>d.Dept_manager;
     return in;
 }
+
 int main() {
     int choice;
-    fstream empl(emp,ios::app);
-    fstream depa(dep,ios::app);
     cout << "1-) " << " Add New Employee "<<endl;
     cout << "2-) " << " Add New Department "<<endl;
     cout << "3-) " << " Delete Employee by ID "<<endl;
@@ -172,7 +187,7 @@ int main() {
     if(choice==1)
     {
 
-        Employee e;
+        Employee e,s;
         cin >> e;
         cout <<e.Employee_Name <<endl;
         e.writeRecord(empl,e);

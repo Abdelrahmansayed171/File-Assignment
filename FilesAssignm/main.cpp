@@ -43,7 +43,7 @@ public:
         // string to char array
         strcpy(char_array, lol.c_str());
 
-        file.write(char_array, n);
+        file.write(char_array, sizeof(n));
 
 
 
@@ -64,13 +64,6 @@ public:
         int header_list=-1;
         int li;
         cin >> byte_offset;
-//
-//        file.seekg(byte_offset, ios::beg);
-//        file.get( (char)&li,sizeof (2));
-//
-//        cout << li<<endl;
-
-
 
         file.seekp(byte_offset, ios::beg);
 
@@ -117,7 +110,7 @@ public:
     char Dept_manager[30];
 
     void writeRecord(fstream & file,Department &d){
-        int deptRecordLength, deptIDLength, deptNameLength ,deptManagerLength;
+        short deptRecordLength, deptIDLength, deptNameLength ,deptManagerLength;
         deptIDLength=strlen(d.Dept_ID);
         deptNameLength=strlen(d.Dept_Name);
         deptManagerLength=strlen(d.Dept_manager);
@@ -125,7 +118,7 @@ public:
 
         deptRecordLength=deptIDLength+deptNameLength+deptManagerLength+3;
         string lol = toChar(deptRecordLength);
-        int n = lol.length();
+        short n = lol.length();
 
         // declaring character array
         char char_array[n + 1];
@@ -134,7 +127,7 @@ public:
         // string to char array
         strcpy(char_array, lol.c_str());
 
-        file.write(char_array, sizeof(deptRecordLength));
+        file.write(char_array, sizeof(n));
 
 
         file.write(d.Dept_ID, deptIDLength);

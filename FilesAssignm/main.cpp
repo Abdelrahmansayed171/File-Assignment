@@ -1,11 +1,13 @@
 #include <iostream>
 #include <bits/stdc++.h>
+#include<strstream>
 using namespace std;
 const string emp= "Employee.txt", dep = "Department.txt", Emp_PIndex = "PIndex_Emp.txt" , Dep_PIndex = "PIndex_Dep.txt";
-fstream empl(emp,ios::app);
-fstream depa(dep,ios::app);
-fstream prim(Emp_PIndex, ios::app);
-fstream primdep(Dep_PIndex, ios::app);
+int EmpNum = 0,highBOff;
+fstream empl(emp,ios::app|ios::in);
+fstream depa(dep,ios::app|ios::in);
+fstream prim(Emp_PIndex, ios::app|ios::in);
+fstream primdep(Dep_PIndex, ios::app|ios::in);
 class Entity{
 public:
     const static int maxRecordSize = 1000;
@@ -19,13 +21,57 @@ public:
         reverse(tmp.begin(),tmp.end());
         return tmp;
     }
+    static int toInt(char arr[],int sizee){
+        vector <int> v;
+        int tmp = 0;
+        for(int i =0; i < sizee;i++){
+            if(arr[i]!=' '){
+                v.push_back((int)arr[i]-'0');
+            }
+            else{
+                break;
+            }
+        }
+        int multi = 1;
+        for(int i = v.size()-1;i>= 0;i--){
+            tmp += v[i]*multi;
+            multi *=10;
+        }
+        return tmp;
+    }
     static void Format(char s[],int len){
         int written = strlen(s);
         for(int i =written;i < len;i++){
             s[i] = ' ';
         }
     }
-
+    static void readStudent(fstream & file)
+    {
+        char indicator[4];
+        file.read(indicator,4);
+        int length = toInt(indicator,4);
+        char record[length];
+        file.read(record,length);
+        cout << length <<endl;
+        for(int i = 0;i <length;i++){
+            cout << record[i];
+        }
+        istrstream strbuff(record);
+    }
+};
+class DepPIndex: public Entity{
+public:
+    char Dept_ID[30];
+    int byteOff;
+    void writeindex(fstream & file,char* d,int byteOff){
+        file.write(d, 12);
+        string lol = Entity::toChar(byteOff);
+        int n = lol.length();
+        char char_array[n + 1];
+        strcpy(char_array, lol.c_str());
+        Entity::Format(char_array,sizeof(byteOff));
+        file.write(char_array, sizeof(byteOff));
+    }
 };
 class EmpPIndex: public Entity{
 public:
@@ -40,13 +86,36 @@ public:
         Entity::Format(char_array,sizeof(byteOff));
         file.write(char_array, sizeof(byteOff));
     }
+//    int searchID(fstream & file,string ID){
+//        int numRec = EmpNum;
+//        int byteOff=-1;
+//        int low = 4, mid, high = highBOff;
+//
+//        while (low <= high)
+//        {
+//            mid = (low + high) / 2;
+//            if (ID < PrmIndxArray[mid].ID)
+//                high = mid - 1;
+//            else if (ID > PrmIndxArray[mid].ID)
+//                low = mid + 1;
+//            else{
+//                byteOff= PrmIndxArray[mid].RRN;
+//                break;
+//            }
+//        }
+//        return byteOff;
+//    }
 };
+
 class Employee: public Entity{
 public:
     char Employee_ID[13];
     char Employee_Name[50];
     char Employee_Position[50];
     char Dept_ID[30];
+    Employee(){
+        EmpNum++;
+    }
     void writeRecord(fstream & file,Employee &e){
         int employeeRecordLength, employeeIDLength, employeeNameLength ,employeePositionLength,deptidLength;
         employeeIDLength=strlen(e.Employee_ID);
@@ -57,6 +126,7 @@ public:
         cout << employeeRecordLength <<endl;
         empl.seekp(0,ios::end);
         int byteOff = empl.tellp();
+        highBOff = byteOff;
         string lol = e.toChar(employeeRecordLength);
         int n = lol.length();
         char char_array[n + 1];
@@ -120,23 +190,6 @@ istream & operator >> (istream &in,  Employee &e){
     cin>>e.Dept_ID;
     return in;
 }
-
-
-class DepPIndex: public Entity{
-public:
-    char Dept_ID[30];
-    int byteOff;
-    void writeindex(fstream & file,char* d,int byteOff){
-        file.write(d, 12);
-        string lol = Entity::toChar(byteOff);
-        int n = lol.length();
-        char char_array[n + 1];
-        strcpy(char_array, lol.c_str());
-        Entity::Format(char_array,sizeof(byteOff));
-        file.write(char_array, sizeof(byteOff));
-    }
-};
-
 class Department :public Entity{
 public:
     char Dept_ID[30];
@@ -187,41 +240,5 @@ istream & operator >> (istream &in,  Department &d){
 }
 
 int main() {
-    int choice;
-    cout << "1-) " << " Add New Employee "<<endl;
-    cout << "2-) " << " Add New Department "<<endl;
-    cout << "3-) " << " Delete Employee by ID "<<endl;
-    cout << "4-) " << " Delete Department by ID"<<endl;
-    cout << "5-) " << " print Employee by ID"<<endl;
-    cout << "6-) " << " print Employee by Department ID"<<endl;
-    cout << "7-) " << " print Department by ID"<<endl;
-    cout << "8-) " << " print Department by name"<<endl;
-    cout << "9-) " << " Write a query "<<endl;
-    cout << "10-)" <<" Exit "<<endl;
-    cin >> choice;
-    if(choice==1)
-    {
-
-        Employee e,s;
-        cin >> e;
-        cout <<e.Employee_Name <<endl;
-        e.writeRecord(empl,e);
-    }
-    else if(choice == 2)
-    {
-        Department d;
-        cin >> d;
-        cout <<d.Dept_Name <<endl;
-        d.writeRecord(depa,d);
-    }
-    else if(choice ==3)
-    {
-        int empID;
-        cin>>empID;
-        Employee::deleteRecord(empl,empID);
-    }
-    else if(choice==10)
-    {
-        return 0;
-    }
+    Entity::readStudent(empl);
 }

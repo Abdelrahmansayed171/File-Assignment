@@ -10,10 +10,20 @@ fstream depa(dep,ios::out|ios::in);
 fstream prim(Emp_PIndex, ios::out|ios::in);
 fstream primdep(Dep_PIndex, ios::out|ios::in);
 
+int deleted;
+char flag[1] = {'*'};
+char deli[1] = {'|'};
+
+int listHeader = -1;
+
 
 
 string toChar(int s){
     string tmp = "";
+    if(s == -1){
+        tmp = "-1";
+        return tmp;
+    }
     while(true){
         tmp += s%10 + '0';
         s/=10;
@@ -21,6 +31,25 @@ string toChar(int s){
     }
     reverse(tmp.begin(),tmp.end());
     return tmp;
+}
+
+
+
+void Format(string &s,int len){
+    while(s.length()<len){
+        s+=" ";
+    }
+}
+
+
+
+void headerWriter(fstream &file){
+    string s = toChar(listHeader);
+    Format(s,4);
+    int tmp = file.tellp();
+    file.seekp(0,ios::beg);
+    file.write(s.c_str(),sizeof(int));
+    file.seekp(tmp,ios::beg);
 }
 
 
@@ -50,12 +79,6 @@ void FormatArr(char s[],int len){
     }
 }
 
-
-void Format(string &s,int len){
-    while(s.length()<len){
-        s+=" ";
-    }
-}
 
 
 
@@ -96,16 +119,18 @@ void quickSort(vector <PIndex>& PrmIndxArray, int left, int right)
 
 
 void writeindex(fstream &file,vector <PIndex>& prims){
+    prim.close();
+    fstream prim(Emp_PIndex, ios::out);
     quickSort(prims,0,prims.size()-1);
-    file.seekp(0,ios::beg);
+    prim.seekp(0,ios::beg);
     for(int i = 0; i <prims.size();i++){
-        file.write(prims[i].Employee_ID.c_str(), 13);
+        prim.write(prims[i].Employee_ID.c_str(), 13);
         string lol = toChar(prims[i].byteOff);
         int n = lol.length();
         char char_array[n + 1];
         strcpy(char_array, lol.c_str());
         FormatArr(char_array,sizeof(prims[i].byteOff));
-        file.write(char_array, sizeof(prims[i].byteOff));
+        prim.write(char_array, sizeof(prims[i].byteOff));
     }
 }
 
@@ -125,13 +150,34 @@ int searchID(vector <PIndex>& PrmIndxArray,string ID)
             low = mid + 1;
         else{
             RRN= PrmIndxArray[mid].byteOff;
+            deleted = mid;
             break;
         }
     }
-    cout << RRN <<endl;
     return RRN;
 }
 
+
+void deleteID(fstream &file,vector <PIndex>& PrmIndxArray,string ID){
+    int byteOff = searchID(PrmIndxArray,ID);
+    file.seekp(byteOff,ios::beg);
+    file.seekg(byteOff,ios::beg);
+    char indicator[4];
+    file.read(indicator,4);
+    file.seekp(byteOff,ios::beg);
+    file.seekg(byteOff,ios::beg);
+    file.write(flag,1);
+    string preIDX = toChar(listHeader);
+
+    file.write(preIDX.c_str(),2);
+    file.write(deli,1);
+    file.write(indicator, 4);
+    listHeader = byteOff;
+    headerWriter(file);
+
+    PrimeIndexes.erase(PrimeIndexes.begin()+deleted);
+    writeindex(prim,PrimeIndexes);
+}
 
 class Employee
 {
@@ -212,177 +258,18 @@ istream & operator >> (istream &in,  Employee &e){
     return in;
 }
 
-//struct SIndex
-//{
-//    string ID;
-//    string Name;
-//};
-//
-//Student GetStudent(int RNN,fstream &infile)
-//{
-//    Student student;
-//    infile.seekg(RNN*40, ios::beg);
-//    student.readStudent(infile);
-//    return student;
-//}
-//int GetRecordRRN(PIndex PrmIndxArray[],int numRec,string ID)
-//{
-//    int RRN=-1;
-//    int low = 0, mid, high = numRec-1;
-//
-//    while (low <= high)
-//    {
-//        mid = (low + high) / 2;
-//        if (ID < PrmIndxArray[mid].ID)
-//            high = mid - 1;
-//        else if (ID > PrmIndxArray[mid].ID)
-//            low = mid + 1;
-//        else{
-//            RRN= PrmIndxArray[mid].RRN;
-//            break;
-//        }
-//    }
-//    return RRN;
-//}
-//
-//void WritePrimIndex(PIndex PrmIndxArray[],int numRec,fstream&outfile) {
-//    for(int i =0;i<numRec;i++){
-//        outfile.write((char*)&PrmIndxArray[i].RRN,sizeof(int));
-//        outfile.write(PrmIndxArray[i].ID.c_str(),10);
-//    }
-//
-//
-//}
-//
-//void ReadPrimIndex(PIndex PrmIndxArray[],int numRec,fstream& inFile) {
-//    for(int i =0;i<numRec;i++){
-//        inFile.read((char*)&PrmIndxArray[i].RRN,sizeof(int));
-//        char* tmp=new char[10];
-//        inFile.read(tmp,10);
-//        tmp[10]=0;
-//        PrmIndxArray[i].ID=tmp;
-//    }
-//
-//}
-//
-//
-//void quickSort(PIndex PrmIndxArray[], int left, int right)
-//{
-//    int i = left, j = right;
-//    PIndex tmp;
-//    string pivot = PrmIndxArray[(left + right) / 2].ID;
-//    while (i <= j) {
-//        while (PrmIndxArray[i].ID < pivot)
-//            i++;
-//        while (PrmIndxArray[j].ID > pivot)
-//            j--;
-//        if (i <= j) {
-//            tmp = PrmIndxArray[i];
-//            PrmIndxArray[i] = PrmIndxArray[j];
-//            PrmIndxArray[j] = tmp;
-//            i++;
-//            j--;
-//        }
-//    }
-//    if (left < j)
-//        quickSort(PrmIndxArray, left, j);
-//    if (i < right)
-//        quickSort(PrmIndxArray, i, right);
-//}
-//
-//void Format(string &s,int len){
-//    while(s.length()<len){
-//        s+=" ";
-//    }
-//}
-//int AddStudents(int numRec){
-//    fstream file,PrimIndex;
-//
-//    file.open("file1.txt",ios::out);
-//    PrimIndex.open("Primary.txt",ios::out);
-//
-//
-//    PIndex *PrmIndxArray=new PIndex[numRec];
-//    Student *students=new Student[numRec];
-//
-//    for(int i =0;i<numRec;i++){
-//        Student tmp;
-//        cout<<endl<<"Enter Student "<<i+1<<" ID (Max 10 Letters):";
-//        cin>>tmp.ID;
-//        Format(tmp.ID,10);
-//        cout<<"Enter Student "<<i+1<<" Name (Max 10 Letters) :";
-//        cin>>tmp.Name;
-//        Format(tmp.Name,10);
-//        cout<<"Enter Student "<<i+1<<" Address (Max 20 Letters) :";
-//        cin>>tmp.Addr;
-//        Format(tmp.Addr,20);
-//
-//        students[i]=tmp;
-//
-//        PrmIndxArray[i].RRN=i;
-//        PrmIndxArray[i].ID=tmp.ID;
-//
-//        students[i].writeStudent(file);
-//    }
-//
-//    quickSort(PrmIndxArray,0,numRec-1);
-//    WritePrimIndex(PrmIndxArray,numRec,PrimIndex);
-//
-//    file.close();
-//    PrimIndex.close();
-//
-//    return numRec;
-//
-//}
-//
-//void SearchById(int numRec){
-//    fstream file,PrimIndex;
-//
-//    file.open("file1.txt",ios::in);
-//    PrimIndex.open("Primary.txt",ios::in);
-//
-//
-//    PIndex *PrmIndxArray=new PIndex[numRec];
-//    Student *students=new Student[numRec];
-//
-//    ReadPrimIndex(PrmIndxArray,numRec,PrimIndex);
-//
-//
-//    //printing index files
-//    /*
-//     cout<<"Primary index"<<endl;
-//     for(int i =0;i<numRec;i++){
-//     cout<<"RRN : "<<PrmIndxArray[i].RRN<<"  ID:"<<PrmIndxArray[i].ID<<endl;
-//     }
-//     */
-//
-//    string ID;
-//    Student student;
-//    int RRN;
-//    cout<<endl<<"Enter Target Stundent ID : ";
-//    cin>>ID;
-//    Format(ID,10);
-//
-//    RRN= GetRecordRRN(PrmIndxArray,numRec,ID);
-//    cout<<RRN<<endl;
-//    student= GetStudent(RRN,file);
-//    cout<<endl<<"Student ID : "<<student.ID<<"  Name: "<<student.Name<<"  Address: "<<student.Addr<<endl;
-//
-//    file.close();
-//    PrimIndex.close();
-//}
+
 
 int main(int argc, const char * argv[])
 {
-    Employee e,d,b;
-    cin >> e>>d>>b;
+    string s = "-1  ";
+    empl.write(s.c_str(),sizeof(int));
+    Employee e,b,c;
+    cin >> e>>b>>c;
     e.writeEmployee(empl);
-    d.writeEmployee(empl);
     b.writeEmployee(empl);
-    int x = searchID(PrimeIndexes,"1");
-    int y = searchID(PrimeIndexes,"2");
-    int z = searchID(PrimeIndexes,"3");
-    for (int i =0; i < PrimeIndexes.size();i++)cout << endl<< PrimeIndexes[i].Employee_ID<<' ';
+    c.writeEmployee(empl);
+    deleteID(empl,PrimeIndexes,"3");
     system("Pause");
     return 0;
 }

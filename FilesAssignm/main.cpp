@@ -5,10 +5,10 @@ using namespace std;
 
 const string emp= "Employee.txt", dep = "Department.txt", Emp_PIndex = "PIndex_Emp.txt" , Dep_PIndex = "PIndex_Dep.txt";
 
-fstream empl(emp,ios::app|ios::in);
-fstream depa(dep,ios::app|ios::in);
-fstream prim(Emp_PIndex, ios::app|ios::in);
-fstream primdep(Dep_PIndex, ios::app|ios::in);
+fstream empl(emp,ios::out|ios::in);
+fstream depa(dep,ios::out|ios::in);
+fstream prim(Emp_PIndex, ios::out|ios::in);
+fstream primdep(Dep_PIndex, ios::out|ios::in);
 
 
 
@@ -107,6 +107,29 @@ void writeindex(fstream &file,vector <PIndex>& prims){
         FormatArr(char_array,sizeof(prims[i].byteOff));
         file.write(char_array, sizeof(prims[i].byteOff));
     }
+}
+
+
+int searchID(vector <PIndex>& PrmIndxArray,string ID)
+{
+    Format(ID,13);
+    int RRN=-1;
+    int low = 0, mid, high = PrmIndxArray.size()-1;
+
+    while (low <= high)
+    {
+        mid = (low + high) / 2;
+        if (ID < PrmIndxArray[mid].Employee_ID)
+            high = mid - 1;
+        else if (ID > PrmIndxArray[mid].Employee_ID)
+            low = mid + 1;
+        else{
+            RRN= PrmIndxArray[mid].byteOff;
+            break;
+        }
+    }
+    cout << RRN <<endl;
+    return RRN;
 }
 
 
@@ -351,9 +374,15 @@ istream & operator >> (istream &in,  Employee &e){
 
 int main(int argc, const char * argv[])
 {
-    Employee e;
-    string s = e.readEmployee(empl);
-    cout << s <<endl;
+    Employee e,d,b;
+    cin >> e>>d>>b;
+    e.writeEmployee(empl);
+    d.writeEmployee(empl);
+    b.writeEmployee(empl);
+    int x = searchID(PrimeIndexes,"1");
+    int y = searchID(PrimeIndexes,"2");
+    int z = searchID(PrimeIndexes,"3");
+    for (int i =0; i < PrimeIndexes.size();i++)cout << endl<< PrimeIndexes[i].Employee_ID<<' ';
     system("Pause");
     return 0;
 }

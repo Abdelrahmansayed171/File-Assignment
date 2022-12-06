@@ -54,6 +54,9 @@ void headerWriter(fstream &file){
 
 
 int toInt(char arr[],int sizee){
+    if(arr[0] == '-'){
+        return -1;
+    }
     vector <int> v;
     int tmp = 0;
     for(int i =0; i < sizee;i++){
@@ -119,18 +122,16 @@ void quickSort(vector <PIndex>& PrmIndxArray, int left, int right)
 
 
 void writeindex(fstream &file,vector <PIndex>& prims){
-    prim.close();
-    fstream prim(Emp_PIndex, ios::out);
     quickSort(prims,0,prims.size()-1);
-    prim.seekp(0,ios::beg);
+    file.seekp(0,ios::beg);
     for(int i = 0; i <prims.size();i++){
-        prim.write(prims[i].Employee_ID.c_str(), 13);
+        file.write(prims[i].Employee_ID.c_str(), 13);
         string lol = toChar(prims[i].byteOff);
         int n = lol.length();
         char char_array[n + 1];
         strcpy(char_array, lol.c_str());
         FormatArr(char_array,sizeof(prims[i].byteOff));
-        prim.write(char_array, sizeof(prims[i].byteOff));
+        file.write(char_array, sizeof(prims[i].byteOff));
     }
 }
 
@@ -175,7 +176,7 @@ void deleteID(fstream &file,vector <PIndex>& PrmIndxArray,string ID){
     listHeader = byteOff;
     headerWriter(file);
 
-    PrimeIndexes.erase(PrimeIndexes.begin()+deleted);
+    PrmIndxArray.erase(PrimeIndexes.begin()+ deleted);
     writeindex(prim,PrimeIndexes);
 }
 
@@ -189,38 +190,83 @@ public:
 
 
 
-    void writeEmployee(fstream &file)
+    void writeEmployee(fstream &file, int tmp)
     {
+
         int employeeRecordLength, employeeIDLength, employeeNameLength ,employeePositionLength,deptidLength;
         employeeIDLength = Employee_ID.size();
         employeeNameLength = Employee_Name.size();
         employeePositionLength = Employee_Position.size();
         deptidLength = Dept_ID.size();
-        employeeRecordLength=employeeIDLength+employeeNameLength+employeePositionLength+deptidLength+4;
-//        cout << employeeRecordLength <<endl;
-//        empl.seekp(0,ios::end);
-        int byteOff = empl.tellp();
-        string lol = toChar(employeeRecordLength);
-        int n = lol.length();
-        char char_array[n + 1];
-        strcpy(char_array, lol.c_str());
-        FormatArr(char_array,sizeof(byteOff));
-        file.write(char_array, sizeof(n));
+        employeeRecordLength = employeeIDLength + employeeNameLength + employeePositionLength + deptidLength + 4;
 
-        file.write(Employee_ID.c_str(), employeeIDLength);
-        file.write("|", 1);
-        file.write(Employee_Name.c_str(), employeeNameLength);
-        file.write("|", 1);
-        file.write(Employee_Position.c_str(), employeePositionLength);
-        file.write("|", 1);
-        file.write(Dept_ID.c_str(), deptidLength);
-        file.write("|", 1);
-        Format(Employee_ID,13);
-        PIndex idx;
-        idx.Employee_ID = Employee_ID;
-        idx.byteOff     =  byteOff;
-        PrimeIndexes.push_back(idx);
-        writeindex(prim,PrimeIndexes);
+        if(tmp != -1){
+            file.seekp(tmp+1,ios::beg);
+            file.seekg(tmp+1,ios::beg);
+            char prevByteOff[2];
+            file.read(prevByteOff,2);
+            file.seekp(tmp+4,ios::beg);
+            file.seekg(tmp+4,ios::beg);
+            char indicator[4];
+            file.read(indicator,4);
+            int length = toInt(indicator,4);
+            if(length >= employeeRecordLength){
+                file.seekp(tmp,ios::beg);
+                file.seekg(tmp,ios::beg);
+                int byteOff = empl.tellp();
+                string lol = toChar(employeeRecordLength);
+                int n = lol.length();
+                char char_array[n + 1];
+                strcpy(char_array, lol.c_str());
+                FormatArr(char_array,sizeof(byteOff));
+                file.write(char_array, sizeof(n));
+
+                file.write(Employee_ID.c_str(), employeeIDLength);
+                file.write("|", 1);
+                file.write(Employee_Name.c_str(), employeeNameLength);
+                file.write("|", 1);
+                file.write(Employee_Position.c_str(), employeePositionLength);
+                file.write("|", 1);
+                file.write(Dept_ID.c_str(), deptidLength);
+                file.write("|", 1);
+                Format(Employee_ID,13);
+                PIndex idx;
+                idx.Employee_ID = Employee_ID;
+                idx.byteOff     =  byteOff;
+                PrimeIndexes.push_back(idx);
+                writeindex(prim,PrimeIndexes);
+                listHeader = tmp;
+                cout << listHeader <<endl;
+            }
+            else{
+                tmp = toInt(prevByteOff,2);
+                writeEmployee(file,tmp);
+            }
+        }
+        else{
+            int byteOff = empl.tellp();
+            string lol = toChar(employeeRecordLength);
+            int n = lol.length();
+            char char_array[n + 1];
+            strcpy(char_array, lol.c_str());
+            FormatArr(char_array,sizeof(byteOff));
+            file.write(char_array, sizeof(n));
+
+            file.write(Employee_ID.c_str(), employeeIDLength);
+            file.write("|", 1);
+            file.write(Employee_Name.c_str(), employeeNameLength);
+            file.write("|", 1);
+            file.write(Employee_Position.c_str(), employeePositionLength);
+            file.write("|", 1);
+            file.write(Dept_ID.c_str(), deptidLength);
+            file.write("|", 1);
+            Format(Employee_ID,13);
+            PIndex idx;
+            idx.Employee_ID = Employee_ID;
+            idx.byteOff     =  byteOff;
+            PrimeIndexes.push_back(idx);
+            writeindex(prim,PrimeIndexes);
+        }
     }
 
 
@@ -264,12 +310,13 @@ int main(int argc, const char * argv[])
 {
     string s = "-1  ";
     empl.write(s.c_str(),sizeof(int));
-    Employee e,b,c;
-    cin >> e>>b>>c;
-    e.writeEmployee(empl);
-    b.writeEmployee(empl);
-    c.writeEmployee(empl);
-    deleteID(empl,PrimeIndexes,"3");
+    Employee e,b;
+    cin >> e;
+    e.writeEmployee(empl,listHeader);
+    deleteID(empl,PrimeIndexes,"1");
+    cin >> b;
+    b.writeEmployee(empl,listHeader);
+//    for (int i =0; i < PrimeIndexes.size();i++)cout << endl<< PrimeIndexes[i].Employee_ID<<' ';
     system("Pause");
     return 0;
 }

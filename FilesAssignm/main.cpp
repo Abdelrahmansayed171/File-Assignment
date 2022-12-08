@@ -1,140 +1,131 @@
 #include <iostream>
 #include <bits/stdc++.h>
 #include<strstream>
+
 using namespace std;
 
-const string emp= "Employee.txt", dep = "Department.txt", Emp_PIndex = "PIndex_Emp.txt" , Dep_PIndex = "PIndex_Dep.txt",
+const string emp = "Employee.txt", dep = "Department.txt", Emp_PIndex = "PIndex_Emp.txt", Dep_PIndex = "PIndex_Dep.txt",
         emp_2ndry = "emp_secondaryidx.txt", dep_2ndry = "dep_secondaryidx.txt"
 , emp_LabelList = "emp_LabelList.txt", dep_LabelList = "dep_LabelList.txt";
 
-fstream empl(emp,ios::out|ios::in);
-fstream depa(dep,ios::out|ios::in);
-fstream prim(Emp_PIndex, ios::out|ios::in);
-fstream primdep(Dep_PIndex, ios::out|ios::in);
-fstream emp2ndry(emp_2ndry,ios::out | ios::in);
+fstream empl(emp, ios::out | ios::in);
+fstream depa(dep, ios::out | ios::in);
+fstream prim(Emp_PIndex, ios::out | ios::in);
+fstream primdep(Dep_PIndex, ios::out | ios::in);
+fstream emp2ndry(emp_2ndry, ios::out | ios::in);
 fstream empLabelList(emp_LabelList, ios::out);
 
 int deleted;
+int depDeleted;
 char flag[1] = {'*'};
 char deli[1] = {'|'};
 
-int listHeader  = -1;
-int depListHeader=-1;
+int listHeader = -1;
+int depListHeader = -1;
 
 
-
-string toChar(int s){
+string toChar(int s) {
     string tmp = "";
-    if(s == -1){
+    if (s == -1) {
         tmp = "-1";
         return tmp;
     }
-    while(true){
-        tmp += s%10 + '0';
-        s/=10;
-        if(s == 0)break;
+    while (true) {
+        tmp += s % 10 + '0';
+        s /= 10;
+        if (s == 0)break;
     }
-    reverse(tmp.begin(),tmp.end());
+    reverse(tmp.begin(), tmp.end());
     return tmp;
 }
 
 
-
-void Format(string &s,int len){
-    while(s.length()<len){
-        s+=" ";
+void Format(string &s, int len) {
+    while (s.length() < len) {
+        s += " ";
     }
 }
 
 
-
-void headerWriter(fstream &file){
+void headerWriter(fstream &file) {
     string s = toChar(listHeader);
-    Format(s,4);
+    Format(s, 4);
     int tmp = file.tellp();
-    file.seekp(0,ios::beg);
-    file.write(s.c_str(),sizeof(int));
-    file.seekp(tmp,ios::beg);
-}
-void deptheaderWriter(fstream &file){
-    string s = toChar(depListHeader);
-    Format(s,4);
-    int tmp = file.tellp();
-    file.seekp(0,ios::beg);
-    file.write(s.c_str(),sizeof(int));
-    file.seekp(tmp,ios::beg);
+    file.seekp(0, ios::beg);
+    file.write(s.c_str(), sizeof(int));
+    file.seekp(tmp, ios::beg);
 }
 
-int toInt(char arr[],int sizee){
-    if(arr[0] == '-'){
+void deptheaderWriter(fstream &file) {
+    string s = toChar(depListHeader);
+    Format(s, 4);
+    int tmp = file.tellp();
+    file.seekp(0, ios::beg);
+    file.write(s.c_str(), sizeof(int));
+    file.seekp(tmp, ios::beg);
+}
+
+int toInt(char arr[], int sizee) {
+    if (arr[0] == '-') {
         return -1;
     }
-    vector <int> v;
+    vector<int> v;
     int tmp = 0;
-    for(int i =0; i < sizee;i++){
-        if(arr[i]!=' '){
-            v.push_back((int)arr[i]-'0');
-        }
-        else{
+    for (int i = 0; i < sizee; i++) {
+        if (arr[i] != ' ') {
+            v.push_back((int) arr[i] - '0');
+        } else {
             break;
         }
     }
     int multi = 1;
-    for(int i = v.size()-1;i>= 0;i--){
-        tmp += v[i]*multi;
-        multi *=10;
+    for (int i = v.size() - 1; i >= 0; i--) {
+        tmp += v[i] * multi;
+        multi *= 10;
     }
     return tmp;
 }
 
-void FormatArr(char s[],int len){
+void FormatArr(char s[], int len) {
     int written = strlen(s);
-    for(int i =written;i < len;i++){
+    for (int i = written; i < len; i++) {
         s[i] = ' ';
     }
 }
 
 
-
-
-struct PIndex
-{
+struct PIndex {
     int byteOff;
     string Employee_ID;
-
 };
-struct DeptPIndex{
+struct DeptPIndex {
     int byteOff;
     string Dept_ID;
 };
 
-struct emp2ndryIndex{
+struct emp2ndryIndex {
     string dept_ID;
     int idx;
 };
 
-struct dep2ndryIndex{
+struct dep2ndryIndex {
     string dept_name;
     int idx;
 };
 
-vector <PIndex> PrimeIndexes;
-vector <DeptPIndex> depIndexs;
+vector<PIndex> PrimeIndexes;
+vector<DeptPIndex> depIndexs;
 
 
-vector <emp2ndryIndex> emp2ndryIndexes;
-vector <dep2ndryIndex> dep2ndryIndexes;
+vector<emp2ndryIndex> emp2ndryIndexes;
+vector<dep2ndryIndex> dep2ndryIndexes;
 
 
-vector <pair<string,int>> empLabelIndexes;
-vector <pair<string,int>> depLabelIndexes;
+vector<pair<string, int>> empLabelIndexes;
+vector<pair<string, int>> depLabelIndexes;
 
 
-
-
-
-void quickSort(vector <PIndex>& PrmIndxArray, int left, int right)
-{
+void quickSort(vector<PIndex> &PrmIndxArray, int left, int right) {
     int i = left, j = right;
     PIndex tmp;
     string pivot = PrmIndxArray[(left + right) / 2].Employee_ID;
@@ -158,8 +149,7 @@ void quickSort(vector <PIndex>& PrmIndxArray, int left, int right)
 }
 
 
-void quickSortFor2ndry(vector <emp2ndryIndex>& secIndxArray, int left, int right)
-{
+void quickSortFor2ndry(vector<emp2ndryIndex> &secIndxArray, int left, int right) {
     int i = left, j = right;
     emp2ndryIndex tmp;
     string pivot = secIndxArray[(left + right) / 2].dept_ID;
@@ -183,63 +173,61 @@ void quickSortFor2ndry(vector <emp2ndryIndex>& secIndxArray, int left, int right
 }
 
 
-void write2ndryIndex(fstream &file,vector <emp2ndryIndex>& secIndxArray){
-    quickSortFor2ndry(secIndxArray,0,secIndxArray.size()-1);
-    file.seekp(0,ios::beg);
-    for(int i = 0; i < secIndxArray.size();i++){
+void write2ndryIndex(fstream &file, vector<emp2ndryIndex> &secIndxArray) {
+    quickSortFor2ndry(secIndxArray, 0, secIndxArray.size() - 1);
+    file.seekp(0, ios::beg);
+    for (int i = 0; i < secIndxArray.size(); i++) {
         file.write(secIndxArray[i].dept_ID.c_str(), 30);
         string lol = toChar(secIndxArray[i].idx);
         int n = lol.length();
         char char_array[n + 1];
         strcpy(char_array, lol.c_str());
-        FormatArr(char_array,sizeof(secIndxArray[i].idx));
+        FormatArr(char_array, sizeof(secIndxArray[i].idx));
         file.write(char_array, sizeof(secIndxArray[i].idx));
     }
-    empLabelList.seekp(0,ios::beg);
-    empLabelList.seekg(0,ios::beg);
-    for(int i = 0; i < empLabelIndexes.size();i++){
-        empLabelList.write(empLabelIndexes[i].first.c_str(),13);
+    empLabelList.seekp(0, ios::beg);
+    empLabelList.seekg(0, ios::beg);
+    for (int i = 0; i < empLabelIndexes.size(); i++) {
+        empLabelList.write(empLabelIndexes[i].first.c_str(), 13);
         string lol = toChar(empLabelIndexes[i].second);
         int n = lol.length();
         char char_array[n + 1];
         strcpy(char_array, lol.c_str());
-        FormatArr(char_array,sizeof(empLabelIndexes[i].second));
+        FormatArr(char_array, sizeof(empLabelIndexes[i].second));
         empLabelList.write(char_array, sizeof(empLabelIndexes[i].second));
     }
 
 
 }
 
-void writeindex(fstream &file,vector <PIndex>& prims){
-    quickSort(prims,0,prims.size()-1);
-    file.seekp(0,ios::beg);
-    for(int i = 0; i <prims.size();i++){
+void writeindex(fstream &file, vector<PIndex> &prims) {
+    quickSort(prims, 0, prims.size() - 1);
+    file.seekp(0, ios::beg);
+    for (int i = 0; i < prims.size(); i++) {
         file.write(prims[i].Employee_ID.c_str(), 13);
         string lol = toChar(prims[i].byteOff);
         int n = lol.length();
         char char_array[n + 1];
         strcpy(char_array, lol.c_str());
-        FormatArr(char_array,sizeof(prims[i].byteOff));
+        FormatArr(char_array, sizeof(prims[i].byteOff));
         file.write(char_array, sizeof(prims[i].byteOff));
     }
 }
 
 
-int search2ndry(vector <emp2ndryIndex> v,string ID)
-{
-    Format(ID,30);
-    int RRN=-1;
-    int low = 0, mid, high = v.size()-1;
+int search2ndry(vector<emp2ndryIndex> v, string ID) {
+    Format(ID, 30);
+    int RRN = -1;
+    int low = 0, mid, high = v.size() - 1;
 
-    while (low <= high)
-    {
+    while (low <= high) {
         mid = (low + high) / 2;
         if (ID < v[mid].dept_ID)
             high = mid - 1;
         else if (ID > v[mid].dept_ID)
             low = mid + 1;
-        else{
-            RRN= v[mid].idx;
+        else {
+            RRN = v[mid].idx;
             break;
         }
     }
@@ -247,30 +235,28 @@ int search2ndry(vector <emp2ndryIndex> v,string ID)
 }
 
 
-int searchID(vector <PIndex>& PrmIndxArray,string ID)
-{
-    Format(ID,13);
-    int RRN=-1;
-    int low = 0, mid, high = PrmIndxArray.size()-1;
+int searchID(vector<PIndex> &PrmIndxArray, string ID) {
+    Format(ID, 13);
+    int RRN = -1;
+    int low = 0, mid, high = PrmIndxArray.size() - 1;
 
-    while (low <= high)
-    {
+    while (low <= high) {
         mid = (low + high) / 2;
         if (ID < PrmIndxArray[mid].Employee_ID)
             high = mid - 1;
         else if (ID > PrmIndxArray[mid].Employee_ID)
             low = mid + 1;
-        else{
-            RRN= PrmIndxArray[mid].byteOff;
+        else {
+            RRN = PrmIndxArray[mid].byteOff;
             deleted = mid;
             break;
         }
     }
     return RRN;
 }
+
 //---------------------------------------------------------------------------------------------
-void DeptquickSort(vector <DeptPIndex>& PrmIndxArray, int left, int right)
-{
+void DeptquickSort(vector<DeptPIndex> &PrmIndxArray, int left, int right) {
     int i = left, j = right;
     DeptPIndex tmp;
     string pivot = PrmIndxArray[(left + right) / 2].Dept_ID;
@@ -293,36 +279,34 @@ void DeptquickSort(vector <DeptPIndex>& PrmIndxArray, int left, int right)
         DeptquickSort(PrmIndxArray, i, right);
 }
 
-void Deptwriteindex(fstream &file,vector <DeptPIndex>& prims){
-    DeptquickSort(prims,0,prims.size()-1);
-    file.seekp(0,ios::beg);
-    for(int i = 0; i <prims.size();i++){
-        file.write(prims[i].Dept_ID.c_str(), 13);
+void Deptwriteindex(fstream &file, vector<DeptPIndex> &prims) {
+    DeptquickSort(prims, 0, prims.size() - 1);
+    file.seekp(0, ios::beg);
+    for (int i = 0; i < prims.size(); i++) {
+        file.write(prims[i].Dept_ID.c_str(), 30);
         string lol = toChar(prims[i].byteOff);
         int n = lol.length();
         char char_array[n + 1];
         strcpy(char_array, lol.c_str());
-        FormatArr(char_array,sizeof(prims[i].byteOff));
+        FormatArr(char_array, sizeof(prims[i].byteOff));
         file.write(char_array, sizeof(prims[i].byteOff));
     }
 }
 
-int DeptsearchID(vector <DeptPIndex>& depIndexs,string ID)
-{
-    Format(ID,13);
-    int RRN=-1;
-    int low = 0, mid, high = depIndexs.size()-1;
+int DeptsearchID(vector<DeptPIndex> &depIndexs, string ID) {
+    Format(ID, 30);
+    int RRN = -1;
+    int low = 0, mid, high = depIndexs.size() - 1;
 
-    while (low <= high)
-    {
+    while (low <= high) {
         mid = (low + high) / 2;
         if (ID < depIndexs[mid].Dept_ID)
             high = mid - 1;
         else if (ID > depIndexs[mid].Dept_ID)
             low = mid + 1;
-        else{
-            RRN= depIndexs[mid].byteOff;
-            deleted = mid;
+        else {
+            RRN = depIndexs[mid].byteOff;
+            depDeleted = mid;
             break;
         }
     }
@@ -331,80 +315,82 @@ int DeptsearchID(vector <DeptPIndex>& depIndexs,string ID)
 
 //---------------------------------------------------------------------------------------------
 
-void deleteID(fstream &file,vector <PIndex>& PrmIndxArray,string ID){
-    int byteOff = searchID(PrmIndxArray,ID);
-    file.seekp(byteOff,ios::beg);
-    file.seekg(byteOff,ios::beg);
+void deleteID(fstream &file, vector<PIndex> &PrmIndxArray, string ID) {
+    int byteOff = searchID(PrmIndxArray, ID);
+    file.seekp(byteOff, ios::beg);
+    file.seekg(byteOff, ios::beg);
     char indicator[4];
-    file.read(indicator,4);
-    file.seekp(byteOff,ios::beg);
-    file.seekg(byteOff,ios::beg);
-    file.write(flag,1);
+    file.read(indicator, 4);
+    file.seekp(byteOff, ios::beg);
+    file.seekg(byteOff, ios::beg);
+    file.write(flag, 1);
     string preIDX = toChar(listHeader);
 
-    file.write(preIDX.c_str(),2);
-    file.write(deli,1);
+    file.write(preIDX.c_str(), 2);
+    file.write(deli, 1);
     file.write(indicator, 4);
     listHeader = byteOff;
     headerWriter(file);
 
-    PrmIndxArray.erase(PrimeIndexes.begin()+ deleted);
-    writeindex(prim,PrimeIndexes);
+    PrmIndxArray.erase(PrimeIndexes.begin() + deleted);
+    writeindex(prim, PrimeIndexes);
 }
 
 
-void DeptdeleteID(fstream &file,vector <DeptPIndex>& PrmIndxArray,string ID){
-    int byteOff = DeptsearchID(PrmIndxArray,ID);
-    file.seekp(byteOff,ios::beg);
-    file.seekg(byteOff,ios::beg);
+void DeptdeleteID(fstream &file, vector<DeptPIndex> &PrmIndxArray, string ID) {
+    int byteOff = DeptsearchID(PrmIndxArray, ID);
+    file.seekp(byteOff, ios::beg);
+    file.seekg(byteOff, ios::beg);
     char indicator[4];
-    file.read(indicator,4);
-    file.seekp(byteOff,ios::beg);
-    file.seekg(byteOff,ios::beg);
-    file.write(flag,1);
+    file.read(indicator, 4);
+    file.seekp(byteOff, ios::beg);
+    file.seekg(byteOff, ios::beg);
+    file.write(flag, 1);
     string preIDX = toChar(depListHeader);
 
-    file.write(preIDX.c_str(),2);
-    file.write(deli,1);
+    file.write(preIDX.c_str(), 2);
+    file.write(deli, 1);
     file.write(indicator, 4);
     depListHeader = byteOff;
     deptheaderWriter(file);
 
-    PrmIndxArray.erase(depIndexs.begin()+ deleted);
-    Deptwriteindex(primdep,depIndexs);
+    PrmIndxArray.erase(PrmIndxArray.begin() + depDeleted);
+    for(int i  = 0; i < PrmIndxArray.size();i++){
+        cout << PrmIndxArray[i].Dept_ID << " ";
+    }
+    cout << endl;
+    Deptwriteindex(primdep, PrmIndxArray);
+
 }
 
-class Employee
-{
+class Employee {
 public:
     string Employee_ID;
     string Employee_Name;
     string Employee_Position;
     string Dept_ID;
 
-    void SecondryAdder(fstream &file,string dep_ID,string emp_ID){
-        empLabelIndexes.emplace_back(make_pair(emp_ID,-1));
-        int idx = search2ndry(emp2ndryIndexes,dep_ID);
-        if(idx == -1){
+    void SecondryAdder(fstream &file, string dep_ID, string emp_ID) {
+        empLabelIndexes.emplace_back(make_pair(emp_ID, -1));
+        int idx = search2ndry(emp2ndryIndexes, dep_ID);
+        if (idx == -1) {
             emp2ndryIndex tmp;
-            Format(dep_ID,30);
+            Format(dep_ID, 30);
             tmp.dept_ID = dep_ID;
-            tmp.idx = empLabelIndexes.size()-1;
+            tmp.idx = empLabelIndexes.size() - 1;
             emp2ndryIndexes.emplace_back(tmp);
-        }
-        else{
-            while(true){
+        } else {
+            while (true) {
                 int after = empLabelIndexes[idx].second;
-                if(after == -1){
-                    empLabelIndexes[idx].second = empLabelIndexes.size()-1;
+                if (after == -1) {
+                    empLabelIndexes[idx].second = empLabelIndexes.size() - 1;
                     break;
-                }
-                else {
+                } else {
                     idx = after;
                 }
             }
         }
-        write2ndryIndex(emp2ndry,emp2ndryIndexes);
+        write2ndryIndex(emp2ndry, emp2ndryIndexes);
     }
 
     void writeEmployee(fstream &file) {
@@ -418,7 +404,7 @@ public:
         int tmp = listHeader;
         int pretemp;
         if (tmp != -1) {
-            while (true){
+            while (true) {
                 file.seekp(tmp + 1, ios::beg);
                 file.seekg(tmp + 1, ios::beg);
                 char prevByteOff[2];
@@ -446,8 +432,7 @@ public:
                             listHeader = -1;
                             headerWriter(file);
                         }
-                    }
-                    else{
+                    } else {
                         file.seekp(posttemp + 1, ios::beg);
                         file.seekg(posttemp + 1, ios::beg);
                         char newByteOff[2];
@@ -487,7 +472,7 @@ public:
                     PrimeIndexes.push_back(idx);
                     writeindex(prim, PrimeIndexes);
                     listHeader = tmp;
-                    SecondryAdder(emp2ndry,Dept_ID,Employee_ID);
+                    SecondryAdder(emp2ndry, Dept_ID, Employee_ID);
                     return;
                 } else {
                     pretemp = tmp;
@@ -516,71 +501,63 @@ public:
             idx.byteOff = byteOff;
             PrimeIndexes.push_back(idx);
             writeindex(prim, PrimeIndexes);
-            SecondryAdder(emp2ndry,Dept_ID,Employee_ID);
+            SecondryAdder(emp2ndry, Dept_ID, Employee_ID);
         }
 
 
     }
 
 
-
-    string readEmployee(fstream & file)
-    {
+    string readEmployee(fstream &file) {
         char indicator[4];
-        file.read(indicator,4);
-        int length = toInt(indicator,4);
+        file.read(indicator, 4);
+        int length = toInt(indicator, 4);
         char record[length];
-        file.read(record,length);
+        file.read(record, length);
         istrstream strbuff(record);
         string tmp = "";
-        for(int i = 0;i < length;i++) tmp.push_back(record[i]);
+        for (int i = 0; i < length; i++) tmp.push_back(record[i]);
         return tmp;
     }
 
 
-
-    void PrintEmpbyID(fstream &file,vector <PIndex>& PrmIndxArray)
-    {
-
+    void PrintEmpbyID(fstream &file, vector<PIndex> &PrmIndxArray) {
 
 
         cout << endl << "Enter employee ID : ";
         cin >> Employee_ID;
-        int rrn=searchID(PrmIndxArray,Employee_ID);
-        file.seekg(rrn,ios::beg);
-        string needed_rec=readEmployee(file);
-        cout <<needed_rec<<endl;
-
-
+        int rrn = searchID(PrmIndxArray, Employee_ID);
+        file.seekg(rrn, ios::beg);
+        string needed_rec = readEmployee(file);
+        cout << needed_rec << endl;
     }
-    void printEmpsbyDepID(){
+
+    void printEmpsbyDepID() {
         cout << endl << "Enter Department ID : ";
         string ID;
         cin >> ID;
-        Format(ID,30);
-        int idx = search2ndry(emp2ndryIndexes,ID);
-        if(idx == -1){
-            cout << "Department Not Found" <<endl;
+        Format(ID, 30);
+        int idx = search2ndry(emp2ndryIndexes, ID);
+        if (idx == -1) {
+            cout << "Department Not Found" << endl;
             return;
-        }
-        else{
-            while(true){
+        } else {
+            while (true) {
                 string empID = empLabelIndexes[idx].first;
-                int byteOff = searchID(PrimeIndexes,empID);
-                if(byteOff == -1){
+                int byteOff = searchID(PrimeIndexes, empID);
+                if (byteOff == -1) {
                     int after = empLabelIndexes[idx].second;
                     idx = after;
                     continue;
                 }
                 empl.seekp(byteOff, ios::beg);
                 empl.seekg(byteOff, ios::beg);
-                string s  = readEmployee(empl);
+                string s = readEmployee(empl);
                 cout << s << endl;
                 int after = empLabelIndexes[idx].second;
-                if(after == -1){
+                if (after == -1) {
                     break;
-                }
-                else {
+                } else {
                     idx = after;
                 }
             }
@@ -588,42 +565,32 @@ public:
 
     }
 
-    friend istream & operator >> (istream &in,  Employee &e);
+    friend istream &operator>>(istream &in, Employee &e);
 };
 
 
-
-
-
-
-
-
-
-
-istream & operator >> (istream &in,  Employee &e){
-    cout <<"Employee ID: ";
-    cin>>e.Employee_ID;
+istream &operator>>(istream &in, Employee &e) {
+    cout << "Employee ID: ";
+    cin >> e.Employee_ID;
     cout << endl;
-    if(e.Employee_ID.size() == 0) return in;
-    cout <<"Employee Name: ";
-    cin>>e.Employee_Name;
+    if (e.Employee_ID.size() == 0) return in;
+    cout << "Employee Name: ";
+    cin >> e.Employee_Name;
     cout << endl;
-    cout <<"Employee Position: ";
-    cin>>e.Employee_Position;
-    cout <<endl;
-    cout <<"Department ID: ";
-    cin>>e.Dept_ID;
+    cout << "Employee Position: ";
+    cin >> e.Employee_Position;
+    cout << endl;
+    cout << "Department ID: ";
+    cin >> e.Dept_ID;
     return in;
 }
+
 ///---------------------------------------------------------------------------------------------------------------------------
-class Department
-{
+class Department {
 public:
     string Dept_ID;
     string Dept_Name;
     string Dept_Manager;
-
-
 
 
     void writeDept(fstream &file) {
@@ -631,12 +598,12 @@ public:
         DeptIDLength = Dept_ID.size();
         DeptNameLength = Dept_Name.size();
         DeptManagerLength = Dept_Manager.size();
-        DeptRecordLength = DeptIDLength + DeptNameLength + DeptManagerLength + 4;
+        DeptRecordLength = DeptIDLength + DeptNameLength + DeptManagerLength + 3;
 
         int tmp = depListHeader;
         int pretemp;
         if (tmp != -1) {
-            while (true){
+            while (true) {
                 file.seekp(tmp + 1, ios::beg);
                 file.seekg(tmp + 1, ios::beg);
                 char prevByteOff[2];
@@ -664,8 +631,7 @@ public:
                             depListHeader = -1;
                             deptheaderWriter(file);
                         }
-                    }
-                    else{
+                    } else {
                         file.seekp(posttemp + 1, ios::beg);
                         file.seekg(posttemp + 1, ios::beg);
                         char newByteOff[2];
@@ -695,7 +661,7 @@ public:
                     file.write("|", 1);
                     file.write(Dept_Manager.c_str(), DeptManagerLength);
                     file.write("|", 1);
-                    Format(Dept_ID, 13);
+                    Format(Dept_ID, 30);
                     DeptPIndex idx;
                     idx.Dept_ID = Dept_ID;
                     idx.byteOff = byteOff;
@@ -722,7 +688,7 @@ public:
             file.write("|", 1);
             file.write(Dept_Manager.c_str(), DeptManagerLength);
             file.write("|", 1);
-            Format(Dept_ID, 13);
+            Format(Dept_ID, 30);
             DeptPIndex idx;
             idx.Dept_ID = Dept_ID;
             idx.byteOff = byteOff;
@@ -732,48 +698,44 @@ public:
     }
 
 
-
-    string readDept(fstream & file)
-    {
+    string readDept(fstream &file) {
         char indicator[4];
-        file.read(indicator,4);
-        int length = toInt(indicator,4);
+        file.read(indicator, 4);
+        int length = toInt(indicator, 4);
         char record[length];
-        file.read(record,length);
+        file.read(record, length);
         istrstream strbuff(record);
         string tmp = "";
-        for(int i = 0;i < length;i++) tmp.push_back(record[i]);
+        for (int i = 0; i < length; i++) tmp.push_back(record[i]);
         return tmp;
     }
 
 
-
-    void PrintDeptbyID(fstream &file,vector <DeptPIndex>& PrmIndxArray)
-    {
+    void PrintDeptbyID(fstream &file, vector<DeptPIndex> &PrmIndxArray) {
 
         cout << endl << "Enter Department ID : ";
         cin >> Dept_ID;
-        int rrn=DeptsearchID(PrmIndxArray,Dept_ID);
-        file.seekg(rrn,ios::beg);
-        string needed_rec=readDept(file);
-        cout <<needed_rec<<endl;
+        int rrn = DeptsearchID(PrmIndxArray, Dept_ID);
+        file.seekg(rrn, ios::beg);
+        string needed_rec = readDept(file);
+        cout << needed_rec << endl;
     }
 
-    friend istream & operator >> (istream &in,  Department &d);
+    friend istream &operator>>(istream &in, Department &d);
 };
 
 
-istream & operator >> (istream &in,  Department &d){
-    cout <<"Department ID: ";
-    cin>>d.Dept_ID;
+istream &operator>>(istream &in, Department &d) {
+    cout << "Department ID: ";
+    cin >> d.Dept_ID;
     cout << endl;
-    if(d.Dept_ID.size() == 0) return in;
-    cout <<"Department Name: ";
-    cin>>d.Dept_Name;
+    if (d.Dept_ID.size() == 0) return in;
+    cout << "Department Name: ";
+    cin >> d.Dept_Name;
     cout << endl;
-    cout <<"Department Manager: ";
-    cin>>d.Dept_Manager;
-    cout <<endl;
+    cout << "Department Manager: ";
+    cin >> d.Dept_Manager;
+    cout << endl;
     return in;
 }
 
@@ -781,18 +743,26 @@ int main(int argc, const char * argv[])
 {
     string s = "-1  ";
     empl.write(s.c_str(),sizeof(int));
-//    depa.write(s.c_str(),sizeof(int));
+    depa.write(s.c_str(),sizeof(int));
 
+    Department a,b,c;
+    cin >> a >>b;
+    a.writeDept(depa);
+    b.writeDept(depa);
+    DeptdeleteID(depa,depIndexs,"5");
+    cin >> c;
+    c.writeDept(depa);
 
 
 //
-    Employee e,b;
-    cin >> e;
-    e.writeEmployee(empl);
+//    Employee e,b;
+//    cin >> e>>b;
+//    e.writeEmployee(empl);
+//    b.writeEmployee(empl);
 //  deleteID(empl,PrimeIndexes,"1");
-    cin >> b;
-    b.writeEmployee(empl);
-    b.printEmpsbyDepID();
+//    cin >> b;
+//    b.writeEmployee(empl);
+//    b.printEmpsbyDepID();
 //    b.PrintEmpbyID(empl,PrimeIndexes);
 
 
